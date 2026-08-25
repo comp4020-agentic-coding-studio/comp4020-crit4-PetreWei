@@ -1,5 +1,15 @@
 const stage = document.querySelector<HTMLElement>("#stage");
 const hint = document.querySelector<HTMLElement>("#hint");
+const infoToggle = document.querySelector<HTMLButtonElement>("#info-toggle");
+const infoPanel = document.querySelector<HTMLElement>("#info-panel");
+
+if (infoToggle && infoPanel) {
+  infoToggle.addEventListener("click", () => {
+    const open = infoPanel.hidden;
+    infoPanel.hidden = !open;
+    infoToggle.setAttribute("aria-expanded", String(open));
+  });
+}
 
 if (stage && hint) {
   const hintEl = hint;

@@ -11,7 +11,7 @@ body {
 header {
   position: fixed;
   inset: 0 0 auto 0;
-  z-index: 2;
+  z-index: 4;
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
   background: linear-gradient(to bottom, rgba(10, 10, 18, 0.7), transparent);
@@ -78,6 +78,7 @@ main {
   color: rgba(245, 245, 247, 0.85);
   pointer-events: none;
   transition: opacity 0.6s ease;
+  z-index: 2;
 }
 
 #hint[data-faded="true"] {
@@ -93,4 +94,203 @@ main {
   background: hsl(var(--hue, 0), 90%, 65%);
   box-shadow: 0 0 3rem hsl(var(--hue, 0), 90%, 65%);
   pointer-events: none;
+  z-index: 3;
+}
+
+/* --- The cabinet: a theremin drawn behind the play surface ---------------
+   Everything here is decoration. It sits under the glow and never takes
+   pointer events, so the whole viewport stays one continuous play surface. */
+
+#cabinet {
+  --cabinet-height: clamp(74px, 14dvh, 150px);
+  --antenna-height: clamp(150px, 30dvh, 340px);
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: clamp(270px, 42vw, 720px);
+  height: calc(var(--cabinet-height) + var(--antenna-height));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.cabinet-body {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--cabinet-height);
+  border-radius: 12px 12px 4px 4px;
+  border: 2px solid #6b4a2a;
+  border-bottom: none;
+  box-shadow:
+    inset 0 2px 0 rgba(214, 168, 110, 0.45),
+    inset 0 -12px 28px rgba(0, 0, 0, 0.55),
+    0 -14px 40px rgba(0, 0, 0, 0.5);
+  background:
+    repeating-linear-gradient(
+      92deg,
+      rgba(58, 32, 14, 0.55) 0px,
+      rgba(94, 56, 26, 0.25) 3px,
+      rgba(48, 26, 11, 0.6) 7px,
+      rgba(84, 49, 22, 0.2) 11px
+    ),
+    linear-gradient(to bottom, #6b421f 0%, #4a2c14 55%, #2e1a0c 100%);
+}
+
+.screw {
+  position: absolute;
+  top: clamp(10px, 3dvh, 22px);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f0d69a, #a9803a 60%, #6d4c1c);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.screw::after {
+  content: "";
+  position: absolute;
+  inset: 45% 20%;
+  border-radius: 1px;
+  background: rgba(60, 40, 12, 0.75);
+}
+
+.screw-left {
+  left: clamp(10px, 2vw, 22px);
+}
+
+.screw-right {
+  right: clamp(10px, 2vw, 22px);
+}
+
+.nameplate {
+  position: absolute;
+  left: 50%;
+  top: clamp(14px, 4dvh, 34px);
+  transform: translateX(-50%);
+  padding: 0.3rem 1.1rem;
+  border-radius: 3px;
+  font-size: clamp(0.6rem, 1.6vw, 0.85rem);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: #3a2a10;
+  text-shadow: 0 1px 0 rgba(255, 235, 190, 0.5);
+  background: linear-gradient(to bottom, #e8c98a, #b5904c 55%, #8a6a30);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 215, 0.6),
+    0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.antenna {
+  position: absolute;
+  bottom: var(--cabinet-height);
+}
+
+/* Pitch: the vertical rod rising from the right end of the cabinet. */
+.antenna-pitch {
+  right: clamp(18px, 3vw, 44px);
+  width: 6px;
+  height: var(--antenna-height);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    to right,
+    #4a4f5a 0%,
+    #c8ced8 35%,
+    #f2f5fa 48%,
+    #99a1ad 70%,
+    #3d424c 100%
+  );
+  box-shadow: 0 0 14px rgba(200, 216, 255, 0.25);
+}
+
+/* Volume: the loop that juts sideways out of the cabinet's left end. */
+.antenna-volume {
+  left: clamp(16px, 3vw, 40px);
+  width: 6px;
+  height: calc(var(--antenna-height) * 0.22);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    to right,
+    #4a4f5a 0%,
+    #c8ced8 35%,
+    #f2f5fa 48%,
+    #99a1ad 70%,
+    #3d424c 100%
+  );
+  box-shadow: 0 0 14px rgba(200, 216, 255, 0.25);
+}
+
+.antenna-volume-loop {
+  position: absolute;
+  right: 0;
+  top: -0.4em;
+  width: clamp(62px, 15vw, 170px);
+  height: calc(var(--antenna-height) * 0.2);
+  border: 5px solid #b9c0cc;
+  border-radius: 50%;
+  border-right-color: #7d848f;
+  border-bottom-color: #6d747f;
+  box-shadow:
+    0 0 14px rgba(200, 216, 255, 0.22),
+    inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* --- How it works: closed by default, so the first move is still to play -- */
+
+#info-toggle {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  top: clamp(0.6rem, 1.5vh, 1rem);
+  z-index: 5;
+  padding: 0.5rem 1rem;
+  border: 1px solid #6d4f1c;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #3a2a10;
+  cursor: pointer;
+  background: linear-gradient(to bottom, #e8c98a, #b5904c 55%, #8a6a30);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 215, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+#info-toggle:hover {
+  background: linear-gradient(to bottom, #f2d79c, #c39d57 55%, #97753a);
+}
+
+#info-toggle:focus-visible {
+  outline: 3px solid #f5d76e;
+  outline-offset: 3px;
+}
+
+#info-panel {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  top: calc(clamp(0.6rem, 1.5vh, 1rem) + 3rem);
+  z-index: 5;
+  max-width: min(30rem, calc(100vw - 1.5rem));
+  padding: 1.1rem 1.3rem;
+  border: 1px solid #6d4f1c;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #f2e6cf;
+  background: linear-gradient(to bottom, rgba(38, 22, 10, 0.97), rgba(22, 13, 6, 0.97));
+  box-shadow:
+    inset 0 1px 0 rgba(226, 190, 130, 0.3),
+    0 8px 28px rgba(0, 0, 0, 0.6);
+}
+
+#info-panel[hidden] {
+  display: none;
+}
+
+#info-panel p {
+  margin: 0;
+}
+
+#info-panel p + p {
+  margin-top: 0.75rem;
 }

@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout
   title="Theremin"
-  description="A browser theremin: drag, tap, or use arrow keys to bend pitch and volume in real time."
+  description="A browser theremin in a wood-and-brass cabinet: drag, tap, or use arrow keys to bend pitch and volume in real time."
 >
   <header>
     <nav aria-label="Primary">
@@ -19,7 +19,34 @@ import Layout from "../layouts/Layout.astro";
       role="application"
       aria-label="Theremin play surface. Drag or tap to play; left and right change pitch, up and down change volume. When focused, arrow keys do the same."
     >
+      <div id="cabinet" aria-hidden="true">
+        <div class="antenna antenna-pitch"></div>
+        <div class="antenna antenna-volume">
+          <div class="antenna-volume-loop"></div>
+        </div>
+        <div class="cabinet-body">
+          <span class="screw screw-left"></span>
+          <span class="screw screw-right"></span>
+          <span class="nameplate">THEREMIN</span>
+        </div>
+      </div>
       <p id="hint">touch, click, or focus and press an arrow key</p>
+    </div>
+    <button id="info-toggle" type="button" aria-expanded="false" aria-controls="info-panel">
+      how it works
+    </button>
+    <div id="info-panel" role="region" aria-label="How this instrument works" hidden>
+      <p>
+        A theremin is played without touching it: you move your hands through the field
+        around two antennas, and the sound follows. The vertical rod sets the pitch, the
+        loop sets the volume.
+      </p>
+      <p>
+        Here the whole screen is that field. Drag or tap anywhere &mdash; left to right
+        bends the pitch, bottom to top swells the volume. Both are continuous, so there
+        is no note to miss. Focus the surface and hold an arrow key to play it from the
+        keyboard.
+      </p>
     </div>
   </main>
   <script src="../scripts/main.ts"></script>
