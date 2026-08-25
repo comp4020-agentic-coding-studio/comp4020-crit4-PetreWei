@@ -4,8 +4,8 @@ body {
   padding: 0;
   height: 100%;
   font-family: system-ui, sans-serif;
-  background: #0a0a12;
-  color: #f5f5f7;
+  background: #140d08;
+  color: #f3e6d2;
 }
 
 header {
@@ -14,12 +14,12 @@ header {
   z-index: 4;
   padding: 0.5rem 1rem;
   font-size: 0.85rem;
-  background: linear-gradient(to bottom, rgba(10, 10, 18, 0.7), transparent);
+  background: linear-gradient(to bottom, rgba(20, 13, 8, 0.75), transparent);
   pointer-events: none;
 }
 
 header nav a {
-  color: #f5f5f7;
+  color: #e8d6b8;
   text-decoration: none;
   pointer-events: auto;
 }
@@ -49,14 +49,20 @@ main {
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  background: linear-gradient(
-      to top,
-      #120a2a 0%,
-      #1c1440 50%,
-      #3a2a6b 100%
+  /* A dim parlour rather than a gradient: lamplight from above (higher is
+     louder), warming from left to right (rightwards is higher), papered
+     walls, and a vignette so the corners fall away. */
+  background:
+    radial-gradient(ellipse at 50% 78%, transparent 28%, rgba(12, 7, 4, 0.72) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 226, 180, 0.028) 0px,
+      rgba(255, 226, 180, 0.028) 2px,
+      transparent 2px,
+      transparent 34px
     ),
-    linear-gradient(to right, #1c4a8a, #7a1c6b);
-  background-blend-mode: screen;
+    linear-gradient(to top, rgba(14, 8, 5, 0.72) 0%, rgba(14, 8, 5, 0.1) 55%, rgba(255, 206, 140, 0.14) 100%),
+    linear-gradient(to right, #35251a 0%, #4b3221 45%, #6a442a 100%);
   cursor: crosshair;
 }
 
@@ -75,7 +81,7 @@ main {
   padding: 0 2rem;
   text-align: center;
   font-size: clamp(1.1rem, 3vw, 1.6rem);
-  color: rgba(245, 245, 247, 0.85);
+  color: rgba(248, 232, 205, 0.88);
   pointer-events: none;
   transition: opacity 0.6s ease;
   z-index: 2;
@@ -102,13 +108,13 @@ main {
    pointer events, so the whole viewport stays one continuous play surface. */
 
 #cabinet {
-  --cabinet-height: clamp(74px, 14dvh, 150px);
-  --antenna-height: clamp(150px, 30dvh, 340px);
+  --cabinet-height: clamp(104px, 21dvh, 240px);
+  --antenna-height: clamp(230px, 45dvh, 500px);
   position: absolute;
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  width: clamp(270px, 42vw, 720px);
+  width: clamp(300px, 62vw, 1120px);
   height: calc(var(--cabinet-height) + var(--antenna-height));
   pointer-events: none;
   z-index: 1;
@@ -138,9 +144,9 @@ main {
 
 .screw {
   position: absolute;
-  top: clamp(10px, 3dvh, 22px);
-  width: 12px;
-  height: 12px;
+  top: clamp(12px, 3.5dvh, 30px);
+  width: clamp(12px, 1.1vw, 20px);
+  height: clamp(12px, 1.1vw, 20px);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #f0d69a, #a9803a 60%, #6d4c1c);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
@@ -155,11 +161,11 @@ main {
 }
 
 .screw-left {
-  left: clamp(10px, 2vw, 22px);
+  left: clamp(12px, 2vw, 34px);
 }
 
 .screw-right {
-  right: clamp(10px, 2vw, 22px);
+  right: clamp(12px, 2vw, 34px);
 }
 
 .nameplate {
@@ -169,7 +175,7 @@ main {
   transform: translateX(-50%);
   padding: 0.3rem 1.1rem;
   border-radius: 3px;
-  font-size: clamp(0.6rem, 1.6vw, 0.85rem);
+  font-size: clamp(0.62rem, 1.05vw, 1.05rem);
   font-weight: 700;
   letter-spacing: 0.35em;
   color: #3a2a10;
@@ -187,8 +193,8 @@ main {
 
 /* Pitch: the vertical rod rising from the right end of the cabinet. */
 .antenna-pitch {
-  right: clamp(18px, 3vw, 44px);
-  width: 6px;
+  right: clamp(18px, 3vw, 60px);
+  width: clamp(6px, 0.55vw, 11px);
   height: var(--antenna-height);
   border-radius: 3px 3px 0 0;
   background: linear-gradient(
@@ -204,8 +210,8 @@ main {
 
 /* Volume: the loop that juts sideways out of the cabinet's left end. */
 .antenna-volume {
-  left: clamp(16px, 3vw, 40px);
-  width: 6px;
+  left: clamp(16px, 3vw, 56px);
+  width: clamp(6px, 0.55vw, 11px);
   height: calc(var(--antenna-height) * 0.22);
   border-radius: 3px 3px 0 0;
   background: linear-gradient(
@@ -223,9 +229,12 @@ main {
   position: absolute;
   right: 0;
   top: -0.4em;
-  width: clamp(62px, 15vw, 170px);
-  height: calc(var(--antenna-height) * 0.2);
-  border: 5px solid #b9c0cc;
+  /* Wider than it is tall, and border-box so the stroke can't push the loop
+     off the left edge of a narrow screen. */
+  box-sizing: border-box;
+  width: clamp(58px, 15vw, 210px);
+  height: clamp(38px, 7vw, 96px);
+  border: clamp(5px, 0.5vw, 9px) solid #b9c0cc;
   border-radius: 50%;
   border-right-color: #7d848f;
   border-bottom-color: #6d747f;

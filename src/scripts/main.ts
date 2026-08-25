@@ -50,9 +50,11 @@ if (stage && hint) {
     return MIN_GAIN + ratio * (MAX_GAIN - MIN_GAIN);
   }
 
+  // Warm valve-glow, deep red up to lamp yellow: a rainbow sweep reads as a
+  // modern colour picker, which fights the cabinet the instrument sits in.
   function hueForFreq(freq: number): number {
     const ratio = Math.log(freq / MIN_FREQ) / Math.log(MAX_FREQ / MIN_FREQ);
-    return ratio * 300;
+    return 6 + ratio * 46;
   }
 
   function markSounded(): void {
