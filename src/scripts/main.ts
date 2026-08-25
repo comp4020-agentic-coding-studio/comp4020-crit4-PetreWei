@@ -1,4 +1,5 @@
 import { bendFactor, tiltGainFactor } from "./motion.ts";
+import { IDLE_READOUT, formatHz } from "./readout.ts";
 
 const stage = document.querySelector<HTMLElement>("#stage");
 const hint = document.querySelector<HTMLElement>("#hint");
@@ -131,6 +132,21 @@ if (stage && hint) {
       });
   }
 
+  // The cabinet's frequency meter. Whichever voice moved last owns the
+  // reading, which with several fingers down is the one you are paying
+  // attention to.
+  const meterValue = document.querySelector<HTMLElement>("#meter-value");
+
+  function showFrequency(freq: number | null): void {
+    if (!meterValue) return;
+    meterValue.textContent = formatHz(freq);
+    if (freq === null) {
+      delete meterValue.dataset.live;
+    } else {
+      meterValue.dataset.live = "true";
+    }
+  }
+
   function markSounded(): void {
     if (!hasSounded) {
       hasSounded = true;
@@ -185,6 +201,8 @@ if (stage && hint) {
     voice.glow.style.top = `${localY}px`;
     voice.glow.style.setProperty("--hue", `${hueForFreq(freq)}`);
     voice.glow.style.setProperty("--glow-size", `${40 + gainValue * 300}px`);
+
+    showFrequency(freq);
   }
 
   function stopVoice(id: string): void {
@@ -199,6 +217,8 @@ if (stage && hint) {
       voice.glow.remove();
     });
     voices.delete(id);
+    // Nothing sounding, nothing to report — dashes, not the last number.
+    if (voices.size === 0) showFrequency(null);
   }
 
   stage.addEventListener("pointerdown", (event) => {

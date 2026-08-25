@@ -186,6 +186,56 @@ main {
     0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+/* The frequency meter, set into the cabinet under the nameplate: smoked glass
+   when silent, lit from behind while a note is sounding. */
+.meter {
+  position: absolute;
+  left: 50%;
+  top: clamp(46px, 12dvh, 96px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 0.35em;
+  padding: clamp(0.15rem, 0.6dvh, 0.35rem) clamp(0.5rem, 1.4vw, 1rem);
+  border: 1px solid #23150a;
+  border-radius: 3px;
+  background: linear-gradient(to bottom, #120b06, #1d1109 60%, #150d07);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.9),
+    0 1px 0 rgba(214, 168, 110, 0.28);
+}
+
+.meter-value {
+  min-width: 4.6ch;
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(0.72rem, 1.7vw, 1.8rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  /* Unlit: the number is there but cold, so silence never reads as a value. */
+  color: #6b4a2a;
+  transition:
+    color 0.25s ease,
+    text-shadow 0.25s ease;
+}
+
+.meter-unit {
+  font-size: clamp(0.55rem, 0.95vw, 0.85rem);
+  letter-spacing: 0.16em;
+  color: #6b4a2a;
+  transition: color 0.25s ease;
+}
+
+.meter-value[data-live="true"] {
+  color: #ffcf7a;
+  text-shadow: 0 0 10px rgba(255, 186, 92, 0.75);
+}
+
+.meter-value[data-live="true"] + .meter-unit {
+  color: #b78b4f;
+}
+
 .antenna {
   position: absolute;
   bottom: var(--cabinet-height);

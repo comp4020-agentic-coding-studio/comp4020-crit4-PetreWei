@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout
   title="Theremin"
-  description="A browser theremin in a wood-and-brass cabinet: drag, tap, tilt your phone, or use arrow keys to bend pitch and volume in real time."
+  description="A browser theremin in a wood-and-brass cabinet: drag, tap, tilt your phone or press arrow keys to bend pitch and volume, with a lit meter reading the pitch you play."
 >
   <header>
     <nav aria-label="Primary">
@@ -28,6 +28,16 @@ import Layout from "../layouts/Layout.astro";
           <span class="screw screw-left"></span>
           <span class="screw screw-right"></span>
           <span class="nameplate">THEREMIN</span>
+          <!--
+            The frequency meter. Inside the aria-hidden cabinet on purpose: it
+            changes on every pointer move, so announcing it would drown a
+            screen reader rather than help one. The stage's own label carries
+            what the controls do.
+          -->
+          <div class="meter">
+            <span class="meter-value" id="meter-value">&#8211;&#8211;&#8211;</span>
+            <span class="meter-unit">Hz</span>
+          </div>
         </div>
       </div>
       <p id="hint">touch, click, or focus and press an arrow key</p>
