@@ -28,6 +28,12 @@ takes no pointer events --- so the whole viewport stays one continuous field
 to play in. A "how it works" plaque in the corner opens a short explanation
 for anyone who wants one.
 
+On a phone the device itself is the second hand: while a note is sounding,
+rolling it bends the pitch and tipping it away damps the volume, both measured
+from however you were holding it when the note began. Desktop fires no
+orientation events, so there it is exactly the touch-and-keyboard instrument
+it was.
+
 ## The moments that mattered
 
 1. **Continuous pitch instead of a quantized scale.** My first pass at the
@@ -103,6 +109,25 @@ for anyone who wants one.
    of the blue-purple gradient, and the pointer glow pulled from a full
    rainbow sweep into a red-to-amber valve range, since a hue wheel reads as a
    colour picker no matter what cabinet you put around it.
+
+7. **The brief named a sensor I hadn't used, and using it meant not adding a
+   button.** The brief calls mobile fertile "because of touch and motion
+   sensors"; I had touch and had quietly skipped motion. Making the device the
+   player's second hand is the obvious answer --- roll to bend the pitch, tip
+   it away to damp the volume --- but iOS only grants orientation from inside a
+   user gesture, and the usual shape for that is an "enable motion" button,
+   which is the exact instruction-before-sound the brief warns against. The
+   resolution was that the first touch on the stage *is* a user gesture, so the
+   permission ask rides on it and there is still nothing to read first; a
+   refusal costs only the tilt
+   ([`93d65dd`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit4-PetreWei/commit/93d65dda09fbdca28220a548e582146d5327a235)).
+   The same commit is where I finally followed my own `CLAUDE.md` rule about
+   keeping logic DOM-free: tilt is the one input with no visible scale, so the
+   mapping moved into its own module with unit tests, and one of them
+   immediately failed --- the damping floor came out a float hair *below* its
+   own minimum. I fixed the formula to interpolate up from the floor rather
+   than down from one, because loosening the assertion would have been
+   weakening a check to reach green.
 
 ## Before you ship
 
