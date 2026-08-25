@@ -22,14 +22,19 @@ before you've read anything.
 ## What did this work change about who I want to be as a software developer?
 
 *Draft — this one needs your own words before you submit it.* The material is
-there if you want it: the three bugs that mattered this week were all invisible
-to a green `pnpm check`. The link-preview card rendered as a black square, the
+there if you want it. The three bugs that mattered this week were all invisible
+to a green `pnpm check`: the link-preview card rendered as a black square, the
 drag selected text like a paragraph, and the volume loop hung off the left edge
-of a phone screen — none of which any test in `spec/` was ever going to catch,
-and all of which I only saw because I looked at a screenshot. The sharper one
-is the fifth moment in `PROCESS.md`: I'd written a rule in `CLAUDE.md` about
-verifying against the built site rather than a stray dev server, then did it
-again anyway, and it was an assertion — not the rule, not my memory of writing
-it — that caught me. That's worth deciding something about: whether the lesson
-is to trust your own discipline less and your sensors more, or something else
-entirely.
+of a phone screen. No test in `spec/` was ever going to catch any of them; I
+only saw them because I looked at a screenshot.
+
+The sharper one is the fifth moment in `PROCESS.md`. The rule was already
+written in `CLAUDE.md` — verify against the built site, not a stray dev server
+— and I broke it anyway, and what caught me was an assertion I'd written for an
+unrelated reason. Week 4's lecture supplies the vocabulary for why. `CLAUDE.md`
+is read every turn, so every line in it competes for attention with the actual
+task, and a rule that is always on is a rule that is easy to stop seeing. An
+assertion isn't always on: it fires once, at the moment the thing it guards is
+wrong. Which suggests the answer to a correction I keep repeating isn't another
+line in `CLAUDE.md` — it's a sensor, or a skill. What I still have to decide is
+whether that's a claim about tooling or a claim about me.

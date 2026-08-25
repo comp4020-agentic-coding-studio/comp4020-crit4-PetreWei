@@ -24,10 +24,11 @@ The course website publishes each deliverable's brief (the open problem) and spe
 ## Rules that came from a specific failure
 
 - **Never edit `.github/workflows/`.** It's the sensor this work has to satisfy, not part of the work. If a check fails for a reason outside the repo, remove the dependency instead.
-- **Verify against the built site, not the dev server.** A stray `astro dev` holding the port once made a whole "verification" pass read the dev server by accident, toolbar included.
+- **Verify against the built site, not the dev server.** A stray `astro dev` holding the port once made a whole "verification" pass read the dev server by accident, toolbar included. Read the port `astro preview` actually printed — it silently moves to 4322 when 4321 is taken — and assert the tab order, because `ASTRO-DEV-TOOLBAR` in it is the tell.
 - **Never show a plausible-looking guess.** A fallback that looks like the real answer is worse than an obvious failure — fail visibly, or show nothing.
 - **When asked for an outcome, measure first.** "Make it readable" invites a diff approved by eye. Get the numbers before the diff.
 - **JSDOM can't run client scripts or lay out the page.** Keep logic DOM-free and unit-test it directly; check the built HTML for what the script needs to find; verify anything visual or interactive by hand in a real browser.
+- **A correction that keeps repeating belongs in a sensor, not in this file.** Every line here is read on every turn and competes for attention with the task, so a rule that is always on is easy to stop seeing. The dev-server rule above was already written when it got broken again, and an assertion — not the rule — is what caught it. When a mistake recurs, add the check that fires on it and keep this list short enough to still be read.
 
 ## This file is yours
 
