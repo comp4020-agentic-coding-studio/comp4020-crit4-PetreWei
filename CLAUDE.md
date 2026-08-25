@@ -13,7 +13,7 @@ The course website publishes each deliverable's brief (the open problem) and spe
 
 ## The link-preview card
 
-`public/card.png` (1200×630) and the `description`/`og:image` props on `Layout.astro` are what a shared link shows. Update both together whenever you touch a page's content, and pass both props on any new page.
+`public/card.png` (1200×630) and the `description`/`og:image` props on `Layout.astro` are what a shared link shows. Update both together whenever you touch a page's content, and pass both props on any new page. There is one card per language and the copy lives in `src/i18n/strings.ts`, not in the pages — edit it there, and a new language needs its own card, or a Chinese reader gets an English preview.
 
 ## The checks (your sensors)
 

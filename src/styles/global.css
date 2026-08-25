@@ -3,7 +3,20 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-family: system-ui, sans-serif;
+  /* system-ui first, then an explicit Han tail: on Linux and on some Windows
+     configurations system-ui resolves to a face with no CJK coverage, and the
+     Chinese page would render as tofu boxes. System faces only --- a webfont
+     here would be a megabyte of network dependency on the one page that needs
+     it most. */
+  font-family:
+    system-ui,
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "WenQuanYi Zen Hei",
+    sans-serif;
   background: #140d08;
   color: #f3e6d2;
 }
@@ -19,39 +32,82 @@ header {
   pointer-events: none;
 }
 
-/* The maker's mark. Same voice as the nameplate on the cabinet --- uppercase,
-   widely tracked, brass --- but cut into the wall instead of raised off it: the
-   dark edge sits above the letterforms and the warm highlight below, since the
-   room is lit from overhead. Deliberately not shaped like the plaque button on
-   the other side, which is a control; this is a label that happens to link. */
+header nav {
+  display: flex;
+  align-items: baseline;
+  /* Only as wide as the two links, so measuring where the nav ends measures
+     where the lettering ends. A full-width flex row reports a right edge past
+     the plaque button and makes a collision check read as failing when nothing
+     overlaps. */
+  width: max-content;
+}
+
 header nav a {
   display: inline-block;
-  font-size: clamp(0.74rem, 0.9vw, 0.9rem);
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
   text-decoration: none;
-  color: #cfa367;
-  text-shadow:
-    0 -1px 1px rgba(0, 0, 0, 0.85),
-    0 1px 0 rgba(255, 216, 154, 0.18);
   pointer-events: auto;
   transition:
     color 0.25s ease,
     text-shadow 0.25s ease;
 }
 
-header nav a:hover {
+header nav a:focus-visible {
+  outline: 3px solid #f5d76e;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* The maker's mark. Same voice as the nameplate on the cabinet --- uppercase,
+   widely tracked, brass --- but cut into the wall instead of raised off it: the
+   dark edge sits above the letterforms and the warm highlight below, since the
+   room is lit from overhead. Deliberately not shaped like the plaque button on
+   the other side, which is a control; this is a label that happens to link.
+   Latin in every language, like the nameplate: the lettering belongs to the
+   object rather than to the reader. */
+.wordmark {
+  font-size: clamp(0.74rem, 0.9vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #cfa367;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(255, 216, 154, 0.18);
+}
+
+.wordmark:hover {
   color: #f2cd8e;
   text-shadow:
     0 -1px 1px rgba(0, 0, 0, 0.85),
     0 0 14px rgba(255, 196, 108, 0.4);
 }
 
-header nav a:focus-visible {
-  outline: 3px solid #f5d76e;
-  outline-offset: 4px;
-  border-radius: 2px;
+/* The language switch, naming the other language in that language. A step
+   quieter than the mark beside it --- lighter weight, much less tracking --- but
+   NOT a step darker: the measured background behind this corner is lighter on a
+   phone than on a desktop, because the stage vignette scales with the viewport,
+   and a dimmer brass that read 7:1 at 1920 fell to 4.1:1 at 320. So the
+   hierarchy is carried by weight and tracking, which cost nothing legible, and
+   the colour stays where it clears 4.5:1 against the lightest background it
+   actually sits on. The rule between the two is the same incision as the
+   lettering: dark cut on the left, warm highlight on the right of it. */
+.lang-switch {
+  margin-left: clamp(0.6rem, 1.1vw, 1rem);
+  padding-left: clamp(0.6rem, 1.1vw, 1rem);
+  border-left: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: -1px 0 0 rgba(255, 216, 154, 0.13);
+  font-size: clamp(0.72rem, 0.85vw, 0.86rem);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #c99e63;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.85);
+}
+
+.lang-switch:hover {
+  color: #e8c489;
+  text-shadow:
+    0 -1px 1px rgba(0, 0, 0, 0.85),
+    0 0 12px rgba(255, 196, 108, 0.35);
 }
 
 main {
@@ -382,4 +438,13 @@ main {
 
 #info-panel p + p {
   margin-top: 0.75rem;
+}
+
+/* Han glyphs fill their em square, so prose set at Latin leading closes up into
+   a grey block. Measured at 1.55x it was tight; 1.85x reads as the same density
+   the English panel has. :lang(zh) rather than a class because the language is
+   already declared on <html> --- restating it in the markup would be a second
+   place for it to be wrong. */
+:lang(zh) #info-panel {
+  line-height: 1.85;
 }

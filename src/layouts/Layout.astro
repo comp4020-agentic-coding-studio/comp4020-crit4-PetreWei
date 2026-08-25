@@ -1,16 +1,31 @@
 ---
 import "../styles/global.css";
 
+export interface Alternate {
+  /** BCP 47 tag for hreflang. */
+  lang: string;
+  /** Relative path to that language's version of this page. */
+  href: string;
+}
+
 interface Props {
   title: string;
   description: string;
+  /** The <html> lang for this page. One language per served document. */
+  lang: string;
+  /** og:locale, e.g. en_AU. */
+  ogLocale: string;
+  /** Relative path to this page's 1200x630 link-preview card. */
+  card: string;
+  /** Every language this page exists in, including this one. */
+  alternates: readonly Alternate[];
 }
 
-const { title, description } = Astro.props;
+const { title, description, lang, ogLocale, card, alternates } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en-AU">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,12 +41,27 @@ const { title, description } = Astro.props;
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
 
     <!--
-      The link-preview card: public/card.png, 1200x630 --- replace it. The URL
-      resolves against this page, like any link. No og:title/og:description:
-      scrapers fall back to the <title> and description above.
+      Each language is its own document at its own URL, so say so here rather
+      than leaving a crawler to infer it from two pages that look alike. Every
+      language is listed on every page, this one included, which is what makes
+      the set discoverable from whichever one someone lands on first.
+    -->
+    {
+      alternates.map((alternate) => (
+        <link rel="alternate" hreflang={alternate.lang} href={alternate.href} />
+      ))
+    }
+
+    <!--
+      The link-preview card: 1200x630 in public/, one per language --- a
+      Chinese page sharing the English card would show a Chinese reader an
+      English preview. The URL resolves against this page, like any link. No
+      og:title/og:description: scrapers fall back to the <title> and
+      description above, which are already this page's language.
     -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="./card.png" />
+    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:image" content={card} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>

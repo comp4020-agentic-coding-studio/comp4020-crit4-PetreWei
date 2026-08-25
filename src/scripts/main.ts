@@ -1,5 +1,8 @@
 import { bendFactor, tiltGainFactor } from "./motion.ts";
-import { IDLE_READOUT, formatHz } from "./readout.ts";
+// IDLE_READOUT isn't imported here: the served HTML now renders it, so the
+// dashes shipped in the markup and the dashes the script writes back come from
+// one constant without this file restating it.
+import { formatHz } from "./readout.ts";
 
 const stage = document.querySelector<HTMLElement>("#stage");
 const hint = document.querySelector<HTMLElement>("#hint");
