@@ -34,6 +34,12 @@ from however you were holding it when the note began. Desktop fires no
 orientation events, so there it is exactly the touch-and-keyboard instrument
 it was.
 
+It ships in English and Simplified Chinese, as two real documents rather than
+one page that rewrites itself, so each declares its own language and has its
+own address, description and link card. The brass doesn't translate: the
+cabinet nameplate and the wordmark are stamped on an object, and a real
+instrument carries its maker's script wherever it's played.
+
 ## The moments that mattered
 
 1. **Continuous pitch instead of a quantized scale.** My first pass at the
@@ -128,6 +134,27 @@ it was.
    own minimum. I fixed the formula to interpolate up from the floor rather
    than down from one, because loosening the assertion would have been
    weakening a check to reach green.
+
+8. **A contrast ratio turned out not to be a property of two colours.** Adding
+   a second language meant a language switch beside the wordmark, and I picked
+   a brass a step dimmer than the mark so it would read as the quieter of the
+   two. I had checked it: arithmetic on the two hex values against the
+   background I'd measured for the header gave 5.4:1, comfortably over the 4.5
+   floor. Measuring it properly gave 4.10:1 at 320px --- a fail. The colours
+   hadn't changed; the *background* had, because the stage's vignette is sized
+   in viewport units, so the corner the nav sits in is genuinely lighter on a
+   phone than on a desktop. Nothing in the CSS says that, and one measurement
+   at 1920 would have shipped it. The fix was to stop buying hierarchy with
+   brightness, which trades against legibility, and buy it with weight and
+   tracking instead, which don't: worst case is now 5.31:1
+   ([`76c7b39`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit4-PetreWei/commit/76c7b39b49573b95ae7b7fe447ddd7333dc563b1)).
+   The same pass also reported a collision between the nav and the plaque at
+   every size, which was the probe's fault and not the layout's --- it measured
+   the nav's box, and a block-level flex row spans the whole header whatever is
+   in it. Both halves point the same way: `CLAUDE.md` already told me to
+   measure instead of eyeballing, and what this added is that a measurement is
+   evidence about exactly the thing it sampled, so it's worth reading twice
+   before believing either the pass or the fail.
 
 ## Before you ship
 
