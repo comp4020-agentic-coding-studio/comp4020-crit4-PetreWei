@@ -6,20 +6,19 @@ The course website publishes each deliverable's brief (the open problem) and spe
 
 ## How to work in here
 
-- Keep `pnpm dev` running for the fast loop, but verify with `pnpm build && pnpm preview` before trusting a result — base paths and routing can differ between dev and the built site.
+- Keep `pnpm dev` running for the fast loop, but trust nothing you haven't seen on `pnpm build && pnpm preview`.
 - Open the page in a browser (or use `agent-browser`) rather than imagining it. The rendered page is the truth; your mental model of it isn't.
 - A red check is a sensor doing its job: read what it says before changing anything, and never weaken a check just to reach green.
 - Commit when checks pass. Never commit a red state.
-- **Push every commit as you make it, without asking.** The deployed site is what gets marked, so an unpushed commit is work that doesn't count. The order is fixed: `pnpm check` green → commit → push. Never force-push, and never push a commit whose checks you haven't just run.
-- A push to this public repo publishes permanently, and pushing by default removes the beat where a stray file would have been caught. So read `git status` before staging, and name the paths you mean instead of reaching for `git add -A` when anything untracked is in the tree. After the push, the CI run is the authority — a local green is not a green deploy, so read the run rather than assuming it.
+- **Push every commit as you make it, without asking.** An unpushed commit is work that doesn't count. `pnpm check` green → commit → push, never force. Read `git status` and stage by name — this repo is public and a push is permanent — then read the CI run, because a local green is not a green deploy.
 
 ## The link-preview card
 
-`public/card.png` (1200×630) and the `description`/`og:image` props on `Layout.astro` are what a shared link shows. Update both together whenever you touch a page's content, and pass both props on any new page. There is one card per language and the copy lives in `src/i18n/strings.ts`, not in the pages — edit it there, and a new language needs its own card, or a Chinese reader gets an English preview.
+`public/card.png` and `public/card-zh.png` (1200×630) are what a shared link shows, and the copy lives in `src/i18n/strings.ts`, not in the pages. Move the card and the copy together, one card per language, or a Chinese reader gets an English preview. `Strings` requires a title, description and card, so the type catches a language missing one and `spec/i18n.test.ts` catches a card referenced but never shipped.
 
 ## The checks (your sensors)
 
-`pnpm check` runs typecheck, build, lint and tests; CI repeats that plus links, secrets and the deploy. Green checks fifteen minutes after your crit's cutoff are worth half the week's shipped mark — still running counts as not green.
+`pnpm check` runs typecheck, build and the spec tests; CI repeats that plus `check:evidence`, links, secrets and the deploy. Green checks fifteen minutes after your crit's cutoff are worth half the week's shipped mark — still running counts as not green.
 
 `spec/README.md`, `PROCESS.md` and `reflections/README.md` are in this repo and say what they're for.
 
