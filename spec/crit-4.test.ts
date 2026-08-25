@@ -1,29 +1,14 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { dirname, join, relative, resolve, sep } from "node:path";
-import { JSDOM } from "jsdom";
+import { readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { DIST, pages } from "./built-site.ts";
 
 // This week's brief: turn the page into a playable instrument. The published
 // spec (comp.anu.edu.au/.../crits/04-instrument/) has lines no test can hold —
 // "expressive", "a stranger can play it uninstructed", "no way to play it
 // wrong" — those are judged live at the crit, by ear and by hand. What follows
 // covers only the lines with a mechanical answer.
-const DIST = resolve("dist");
-
-function files(dir: string = DIST): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name);
-    return entry.isDirectory() ? files(path) : [path];
-  });
-}
-
-const shipped = files().map((path) => relative(DIST, path).split(sep).join("/"));
-const pages = shipped
-  .filter((name) => name.endsWith(".html"))
-  .map((name) => ({
-    name,
-    doc: new JSDOM(readFileSync(join(DIST, name), "utf8")).window.document,
-  }));
+// Reading dist/ lives in ./built-site.ts, shared with the other spec files.
 
 // A script counts whether it's inlined or linked — read both so the check
 // survives a build that bundles differently.

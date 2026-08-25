@@ -1,30 +1,11 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
-import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
+import { pages } from "./built-site.ts";
 
 // The invariants run against the BUILT site, so they check what actually
 // ships, not the source. Run `pnpm build` first (the `check` script does).
 // These hold for any good website, whatever the week's brief asks — the
 // week-specific contracts live in your own spec/*.test.ts alongside this file.
-const DIST = resolve("dist");
-
-function files(dir: string = DIST): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name);
-    return entry.isDirectory() ? files(path) : [path];
-  });
-}
-
-// Everything the build emitted, as dist-relative POSIX paths.
-const shipped = files().map((path) => relative(DIST, path).split(sep).join("/"));
-
-const pages = shipped
-  .filter((name) => name.endsWith(".html"))
-  .map((name) => ({
-    name,
-    doc: new JSDOM(readFileSync(join(DIST, name), "utf8")).window.document,
-  }));
+// Reading dist/ lives in ./built-site.ts, shared with the other spec files.
 
 describe("invariants: every page", () => {
   it("built at least one page", () => {

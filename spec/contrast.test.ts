@@ -51,33 +51,30 @@ function contrast(
   a: readonly [number, number, number],
   b: readonly [number, number, number],
 ): number {
-  const [hi, lo] = luminance(a) >= luminance(b) ? [luminance(a), luminance(b)] : [luminance(b), luminance(a)];
-  return (hi + 0.05) / (lo + 0.05);
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
 
 function hexToRgb(hex: string): [number, number, number] {
-  const full =
-    hex.length === 4
-      ? hex
-          .slice(1)
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : hex.slice(1);
-  return [
-    Number.parseInt(full.slice(0, 2), 16),
-    Number.parseInt(full.slice(2, 4), 16),
-    Number.parseInt(full.slice(4, 6), 16),
-  ];
+  const n = Number.parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-/** The `color` a rule sets, read out of the stylesheet source. */
+/**
+ * The `color` a rule sets, read out of the stylesheet source. Six-digit hex
+ * only, which is what this stylesheet uses throughout: anything else --- a
+ * shorthand, an alpha, an `rgb()`, a custom property --- throws rather than
+ * being half-parsed into a ratio that would look like a real answer.
+ */
 function colorOf(selector: string): string {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const rule = new RegExp(`(?:^|\\})[^{}]*${escaped}\\s*\\{([^}]*)\\}`, "m").exec(CSS);
   if (!rule) throw new Error(`no rule for ${selector} in global.css`);
-  const color = /(?:^|;|\s)color:\s*(#[0-9a-fA-F]{3,8})\s*;/.exec(rule[1]!);
-  if (!color) throw new Error(`${selector} sets no hex color`);
+  const color = /(?:^|;|\s)color:\s*(#[0-9a-fA-F]{6})\s*;/.exec(rule[1]!);
+  if (!color) {
+    throw new Error(`${selector} sets no six-digit hex color; this check cannot read it`);
+  }
   return color[1]!;
 }
 
@@ -103,10 +100,11 @@ describe("contrast: the lettering over the stage", () => {
   // text, so both answer to the 4.5 floor.
   for (const selector of [".wordmark", ".lang-switch"]) {
     it(`${selector} clears ${FLOOR}:1 against the lightest background it sits on`, () => {
-      const ratio = contrast(hexToRgb(colorOf(selector)), MEASURED_BACKGROUND);
+      const color = colorOf(selector);
+      const ratio = contrast(hexToRgb(color), MEASURED_BACKGROUND);
       expect(
         Number(ratio.toFixed(2)),
-        `${selector} is ${colorOf(selector)} on rgb(${MEASURED_BACKGROUND.join(",")}) ` +
+        `${selector} is ${color} on rgb(${MEASURED_BACKGROUND.join(",")}) ` +
           `= ${ratio.toFixed(2)}:1. Buy hierarchy with weight and tracking, not brightness.`,
       ).toBeGreaterThanOrEqual(FLOOR);
     });

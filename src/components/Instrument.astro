@@ -20,14 +20,7 @@ const alternates = ORDER.map((code) => ({ lang: LOCALES[code].lang, href: LOCALE
 const others = ORDER.filter((code) => code !== locale).map((code) => LOCALES[code]);
 ---
 
-<Layout
-  title={t.title}
-  description={t.description}
-  lang={t.lang}
-  ogLocale={t.ogLocale}
-  card={t.card}
-  alternates={alternates}
->
+<Layout strings={t} alternates={alternates}>
   <header>
     <nav aria-label={t.navLabel}>
       <!--

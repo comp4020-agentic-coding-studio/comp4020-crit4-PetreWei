@@ -1,9 +1,7 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
-import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
 import astroConfig from "../astro.config.ts";
 import { LOCALES, ORDER, TRANSLATED_KEYS, type Locale } from "../src/i18n/strings.ts";
+import { pageNamed, shipped } from "./built-site.ts";
 
 // The page ships in English and Simplified Chinese as two real documents, each
 // declaring one language. Half of this reads the copy table directly --- the
@@ -15,22 +13,15 @@ import { LOCALES, ORDER, TRANSLATED_KEYS, type Locale } from "../src/i18n/string
 // finds the stage, hint, meter and panel by id and reads no copy at all, so a
 // translation should not be able to break playability. That only stays true if
 // something checks it.
-const DIST = resolve("dist");
 const HAN = /\p{Script=Han}/u;
 
-function files(dir: string = DIST): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(dir, entry.name);
-    return entry.isDirectory() ? files(path) : [path];
-  });
-}
-
-const shipped = files().map((path) => relative(DIST, path).split(sep).join("/"));
-
-/** The relative hrefs in the table, resolved to the file the build emits. */
+/**
+ * The relative hrefs in the table, resolved to the file the build emits. Only
+ * the root needs translating: astro.config.ts sets `build.format: "file"`, so
+ * every other page ships as `name.html` rather than `name/index.html`.
+ */
 function fileFor(href: string): string {
-  const path = href.replace(/^\.\//, "");
-  return path === "" || path.endsWith("/") ? `${path}index.html` : path;
+  return href === "./" ? "index.html" : href.replace(/^\.\//, "");
 }
 
 // Derived from astro.config.ts rather than restated, so this can't certify a
@@ -41,17 +32,10 @@ function fileFor(href: string): string {
 const SITE_ROOT = new URL(String(astroConfig.base).replace(/\/?$/, "/"), astroConfig.site).href;
 const absolute = (href: string) => new URL(href.replace(/^\.\//, ""), SITE_ROOT).href;
 
-const built = new Map(
-  ORDER.map((code) => {
-    const name = fileFor(LOCALES[code].href);
-    const html = shipped.includes(name) ? readFileSync(join(DIST, name), "utf8") : null;
-    return [code, { name, doc: html === null ? null : new JSDOM(html).window.document }];
-  }),
-);
-
 function docFor(code: Locale): Document {
-  const doc = built.get(code)?.doc;
-  if (!doc) throw new Error(`${fileFor(LOCALES[code].href)} was not built`);
+  const name = fileFor(LOCALES[code].href);
+  const doc = pageNamed(name);
+  if (!doc) throw new Error(`${name} was not built`);
   return doc;
 }
 

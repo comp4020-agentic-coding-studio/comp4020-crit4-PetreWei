@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import type { Strings } from "../i18n/strings.ts";
 
 export interface Alternate {
   /** BCP 47 tag for hreflang. */
@@ -9,19 +10,22 @@ export interface Alternate {
 }
 
 interface Props {
-  title: string;
-  description: string;
-  /** The <html> lang for this page. One language per served document. */
-  lang: string;
-  /** og:locale, e.g. en_AU. */
-  ogLocale: string;
-  /** Relative path to this page's 1200x630 link-preview card. */
-  card: string;
+  /**
+   * This page's copy. Taken whole rather than fanned out into a title, a
+   * description, a lang, an og:locale and a card: those five always come from
+   * one row of the table and were only ever unpacked here to be repacked. As
+   * one object, a new piece of page metadata is a field on `Strings` and a tag
+   * below, instead of the same edit made in three files that have to agree.
+   * Every field is required, so a new page cannot ship without a description
+   * or a card --- which is the rule in CLAUDE.md, enforced by the type rather
+   * than by remembering.
+   */
+  strings: Strings;
   /** Every language this page exists in, including this one. */
   alternates: readonly Alternate[];
 }
 
-const { title, description, lang, ogLocale, card, alternates } = Astro.props;
+const { strings, alternates } = Astro.props;
 
 // og:image and hreflang are the two places a relative URL silently does nothing:
 // Open Graph requires an absolute image URL, so a scraper drops the card and a
@@ -45,12 +49,12 @@ const absolute = (path: string) => new URL(path.replace(/^\.\//, ""), root).href
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={strings.lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{strings.title}</title>
+    <meta name="description" content={strings.description} />
 
     <!--
       Declared so the browser stops probing /favicon.ico at the domain root,
@@ -83,8 +87,8 @@ const absolute = (path: string) => new URL(path.replace(/^\.\//, ""), root).href
       already this page's language.
     -->
     <meta property="og:type" content="website" />
-    <meta property="og:locale" content={ogLocale} />
-    <meta property="og:image" content={absolute(card)} />
+    <meta property="og:locale" content={strings.ogLocale} />
+    <meta property="og:image" content={absolute(strings.card)} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
