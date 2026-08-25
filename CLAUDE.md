@@ -10,6 +10,7 @@ The course website publishes each deliverable's brief (the open problem) and spe
 - Open the page in a browser (or use `agent-browser`) rather than imagining it. The rendered page is the truth; your mental model of it isn't.
 - A red check is a sensor doing its job: read what it says before changing anything, and never weaken a check just to reach green.
 - Commit when checks pass. Never commit a red state.
+- Markdown paragraphs are one line each — no hard wrap at 80 columns. Nothing here reformats prose, so a rewrap shows as a diff on every line of a paragraph and buries the sentence that actually changed.
 - **Push every commit as you make it, without asking.** An unpushed commit is work that doesn't count. `pnpm check` green → commit → push, never force. Read `git status` and stage by name — this repo is public and a push is permanent — then read the CI run, because a local green is not a green deploy.
 
 ## The link-preview card

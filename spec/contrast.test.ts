@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// The sensor for PROCESS.md moment 8.
+// The sensor for the contrast measurement, which didn't make the PROCESS.md cut
+// --- so this comment is the only place the story survives.
 //
 // The language switch shipped a hand-calculated 5.4:1 and measured 4.10:1 at
 // 320px: the colours were fine, the *background* wasn't what the arithmetic
