@@ -21,6 +21,13 @@ you move, on the theory that the brief's "no way to play it wrong" line is best
 answered literally: a real theremin has no wrong note, so this one doesn't
 either.
 
+It's dressed as the instrument it imitates: a wood cabinet sits at the bottom
+of a dim, lamplit room, with the pitch rod rising from its right end and the
+volume loop jutting out of its left. The drawing is decoration only --- it
+takes no pointer events --- so the whole viewport stays one continuous field
+to play in. A "how it works" plaque in the corner opens a short explanation
+for anyone who wants one.
+
 ## The moments that mattered
 
 1. **Continuous pitch instead of a quantized scale.** My first pass at the
@@ -59,6 +66,43 @@ either.
    justified it. Adding `user-select: none` to the stage
    ([`bea28b4`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit4-PetreWei/commit/bea28b41835a8e2eaeb7af2910cd4ad0d7c1f8fd))
    and re-screenshotting confirmed the highlight was gone.
+
+4. **Explanation text that doesn't undercut the brief.** Wanting to add an
+   explanation of what a theremin is put me straight against the brief's own
+   line --- a stranger should be able to play it uninstructed. Standing copy on
+   the page would have answered the question nobody had asked yet and made
+   reading the first move instead of playing. Putting it behind a closed "how
+   it works" plaque
+   ([`2bdfca4`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit4-PetreWei/commit/2bdfca4c0c01867115fa2ccc0b236d63238d16df))
+   keeps the first thing you meet the instrument, and still has an answer
+   waiting for the person who wants one. The same commit draws the cabinet and
+   antennas, which do the explaining without any words at all.
+
+5. **The verification pass was reading the wrong server, and a check I'd
+   written for something else caught it.** My browser script asserted the Tab
+   order, so that keyboard reachability couldn't quietly regress. It came back
+   `[info-toggle, ASTRO-DEV-TOOLBAR, ASTRO-DEV-TOOLBAR, ...]` --- a toolbar
+   that only exists in `astro dev`. A stray dev server held port 4321, so
+   `astro preview` had silently moved to 4322 and I'd pointed the script at
+   the wrong one. This is the exact failure already written into CLAUDE.md
+   from an earlier week; the rule didn't stop me repeating it, but the
+   assertion did, and re-running against 4322 is what makes the sizes below
+   worth anything.
+
+6. **"Too small" and "too modern" measured rather than eyeballed.** The
+   redesign feedback was about how it looked, which is the kind of note
+   CLAUDE.md says to answer with numbers rather than a diff approved by eye.
+   The screenshot at 390px showed the volume loop clipped off the left edge;
+   the measurement said why --- its bounding box started at x = -1.5, because
+   a `border` sits *outside* the declared width under the default
+   `content-box`, so the stroke pushed it past the viewport. `box-sizing:
+   border-box` and a wider-than-tall aspect (no real theremin loop is a
+   circle) moved it to x = 9
+   ([`eb43abc`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit4-PetreWei/commit/eb43abc6d2dd01e3ab77924a0f87009cfaeb0428)).
+   The same commit answers "too modern" in the palette: warm lamplight instead
+   of the blue-purple gradient, and the pointer glow pulled from a full
+   rainbow sweep into a red-to-amber valve range, since a hue wheel reads as a
+   colour picker no matter what cabinet you put around it.
 
 ## Before you ship
 
