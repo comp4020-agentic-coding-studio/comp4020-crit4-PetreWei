@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
+import astroConfig from "../astro.config.ts";
 import { LOCALES, ORDER, TRANSLATED_KEYS, type Locale } from "../src/i18n/strings.ts";
 
 // The page ships in English and Simplified Chinese as two real documents, each
@@ -31,6 +32,14 @@ function fileFor(href: string): string {
   const path = href.replace(/^\.\//, "");
   return path === "" || path.endsWith("/") ? `${path}index.html` : path;
 }
+
+// Derived from astro.config.ts rather than restated, so this can't certify a
+// stale origin after a repo rename. The paths a *scraper* reads have to be
+// absolute --- Open Graph requires it and a relative hreflang is ignored --- and
+// a relative one of either is invisible from the page itself, so the check has
+// to be here.
+const SITE_ROOT = new URL(String(astroConfig.base).replace(/\/?$/, "/"), astroConfig.site).href;
+const absolute = (href: string) => new URL(href.replace(/^\.\//, ""), SITE_ROOT).href;
 
 const built = new Map(
   ORDER.map((code) => {
@@ -134,13 +143,15 @@ describe("i18n: the built site", () => {
         );
       });
 
-      it("serves this language's own link card, and the file exists", () => {
+      it("serves this language's own link card, absolutely, and ships the file", () => {
         const card = docFor(code)
           .querySelector('meta[property="og:image"]')
           ?.getAttribute("content");
-        expect(card).toBe(strings.card);
-        // A card that 404s renders a shared link as a bare row of text, and
-        // presence of the tag alone cannot see that.
+        // Absolute: a scraper fetches og:image with no page to resolve it
+        // against, so a relative URL means no card at all --- and a page with
+        // no card renders a shared link as a bare row of text.
+        expect(card).toBe(absolute(strings.card));
+        // ...and the file behind it exists, which the tag alone cannot see.
         expect(shipped, `${strings.card} is referenced but not shipped`).toContain(
           strings.card.replace(/^\.\//, ""),
         );
@@ -151,8 +162,27 @@ describe("i18n: the built site", () => {
           (link) => [link.getAttribute("hreflang"), link.getAttribute("href")].join(" "),
         );
         for (const other of ORDER) {
-          expect(alternates).toContain(`${LOCALES[other].lang} ${LOCALES[other].href}`);
+          expect(alternates).toContain(`${LOCALES[other].lang} ${absolute(LOCALES[other].href)}`);
         }
+      });
+
+      it("leaves nothing a scraper reads relative", () => {
+        // The general form of the two failures above: anything consumed away
+        // from the page must be fully qualified. Belt and braces on purpose ---
+        // this one fires on a *new* tag added relative, not just these two.
+        const doc = docFor(code);
+        const offsite = [
+          ...[...doc.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]')].map(
+            (meta) => [
+              meta.getAttribute("property") ?? meta.getAttribute("name"),
+              meta.getAttribute("content"),
+            ],
+          ),
+          ...[...doc.querySelectorAll('link[rel="alternate"], link[rel="canonical"]')].map(
+            (link) => [link.getAttribute("rel"), link.getAttribute("href")],
+          ),
+        ].filter(([, value]) => value?.startsWith(".") || value?.startsWith("/"));
+        expect(offsite, "a scraper cannot resolve a relative URL").toEqual([]);
       });
 
       it("offers a real link to every other language", () => {

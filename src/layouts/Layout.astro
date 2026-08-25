@@ -22,6 +22,26 @@ interface Props {
 }
 
 const { title, description, lang, ogLocale, card, alternates } = Astro.props;
+
+// og:image and hreflang are the two places a relative URL silently does nothing:
+// Open Graph requires an absolute image URL, so a scraper drops the card and a
+// shared link renders as bare text, and Google ignores a relative hreflang, so
+// the alternate cluster never forms and a Chinese searcher landing on the
+// English page is never routed onward. Neither failure is visible from the page
+// itself, which is exactly why they lasted.
+//
+// Resolved against the configured site and base rather than against this page,
+// so the result doesn't depend on whether a page URL ends up with a trailing
+// slash. `base` is normalised to end in one, because without it `new URL()`
+// treats the last segment as a file and drops it.
+if (!Astro.site) {
+  throw new Error(
+    "astro.config.ts has no `site`, so og:image and hreflang cannot be made absolute. " +
+      "Failing the build rather than emitting relative URLs that look fine and do nothing.",
+  );
+}
+const root = new URL(import.meta.env.BASE_URL.replace(/\/?$/, "/"), Astro.site);
+const absolute = (path: string) => new URL(path.replace(/^\.\//, ""), root).href;
 ---
 
 <!doctype html>
@@ -44,24 +64,27 @@ const { title, description, lang, ogLocale, card, alternates } = Astro.props;
       Each language is its own document at its own URL, so say so here rather
       than leaving a crawler to infer it from two pages that look alike. Every
       language is listed on every page, this one included, which is what makes
-      the set discoverable from whichever one someone lands on first.
+      the set discoverable from whichever one someone lands on first. Absolute,
+      because a relative hreflang is ignored outright.
     -->
     {
       alternates.map((alternate) => (
-        <link rel="alternate" hreflang={alternate.lang} href={alternate.href} />
+        <link rel="alternate" hreflang={alternate.lang} href={absolute(alternate.href)} />
       ))
     }
 
     <!--
       The link-preview card: 1200x630 in public/, one per language --- a
       Chinese page sharing the English card would show a Chinese reader an
-      English preview. The URL resolves against this page, like any link. No
-      og:title/og:description: scrapers fall back to the <title> and
-      description above, which are already this page's language.
+      English preview. Absolute, unlike the favicon above: a browser resolves a
+      relative href against the page, but a scraper fetching og:image out of
+      context has no page to resolve against. No og:title/og:description:
+      scrapers fall back to the <title> and description above, which are
+      already this page's language.
     -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content={ogLocale} />
-    <meta property="og:image" content={card} />
+    <meta property="og:image" content={absolute(card)} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>

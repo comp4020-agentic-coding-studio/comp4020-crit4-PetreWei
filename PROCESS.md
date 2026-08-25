@@ -154,7 +154,14 @@ instrument carries its maker's script wherever it's played.
    in it. Both halves point the same way: `CLAUDE.md` already told me to
    measure instead of eyeballing, and what this added is that a measurement is
    evidence about exactly the thing it sampled, so it's worth reading twice
-   before believing either the pass or the fail.
+   before believing either the pass or the fail. A code review afterwards made
+   the sharper point that the result was still only a number in this file, which
+   by my own rule makes it a correction that belongs in a sensor:
+   `spec/contrast.test.ts` now reads both brass colours out of the stylesheet
+   and checks them against the lightest background actually sampled behind the
+   nav. It can't run a browser, so that background is a recorded input --- which
+   is why the same test fingerprints the stage gradient it was measured against,
+   and goes red asking to be re-measured if the room gets repainted.
 
 ## Before you ship
 

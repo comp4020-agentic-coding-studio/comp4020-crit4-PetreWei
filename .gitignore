@@ -22,6 +22,11 @@ mise.local.toml
 .claude/
 .astro/
 
+# My own lecture notes. Not part of the deliverable, and this repo is already
+# public --- I had been excluding them by hand on every commit, which is one
+# `git add .` away from publishing them.
+lecture-*.md
+
 # IntelliJ project files
 .idea
 *.iml
