@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 
 <Layout
   title="Theremin"
-  description="A browser theremin in a wood-and-brass cabinet: drag, tap, or use arrow keys to bend pitch and volume in real time."
+  description="A browser theremin in a wood-and-brass cabinet: drag, tap, tilt your phone, or use arrow keys to bend pitch and volume in real time."
 >
   <header>
     <nav aria-label="Primary">
@@ -17,7 +17,7 @@ import Layout from "../layouts/Layout.astro";
       id="stage"
       tabindex="0"
       role="application"
-      aria-label="Theremin play surface. Drag or tap to play; left and right change pitch, up and down change volume. When focused, arrow keys do the same."
+      aria-label="Theremin play surface. Drag or tap to play; left and right change pitch, up and down change volume. When focused, arrow keys do the same. On a phone, rolling the device while a note sounds bends the pitch and tipping it away damps the volume."
     >
       <div id="cabinet" aria-hidden="true">
         <div class="antenna antenna-pitch"></div>
@@ -46,6 +46,12 @@ import Layout from "../layouts/Layout.astro";
         bends the pitch, bottom to top swells the volume. Both are continuous, so there
         is no note to miss. Focus the surface and hold an arrow key to play it from the
         keyboard.
+      </p>
+      <p>
+        On a phone, the hand holding it is your second hand. While a note is sounding, roll
+        the device to bend the pitch and tip it away from you to damp the volume &mdash;
+        both measured from however you were holding it when the note began, so there is no
+        pose you have to find first.
       </p>
     </div>
   </main>

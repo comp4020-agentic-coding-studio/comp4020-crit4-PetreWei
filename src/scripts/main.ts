@@ -1,3 +1,5 @@
+import { bendFactor, tiltGainFactor } from "./motion.ts";
+
 const stage = document.querySelector<HTMLElement>("#stage");
 const hint = document.querySelector<HTMLElement>("#hint");
 const infoToggle = document.querySelector<HTMLButtonElement>("#info-toggle");
@@ -26,6 +28,9 @@ if (stage && hint) {
     oscillator: OscillatorNode;
     gain: GainNode;
     glow: HTMLElement;
+    // Last pointer position, so a tilt can re-voice a note nobody is moving.
+    x: number;
+    y: number;
   }
 
   const voices = new Map<string, Voice>();
@@ -54,7 +59,76 @@ if (stage && hint) {
   // modern colour picker, which fights the cabinet the instrument sits in.
   function hueForFreq(freq: number): number {
     const ratio = Math.log(freq / MIN_FREQ) / Math.log(MAX_FREQ / MIN_FREQ);
-    return 6 + ratio * 46;
+    return 6 + clamp01(ratio) * 46;
+  }
+
+  function clamp01(n: number): number {
+    return Math.min(Math.max(n, 0), 1);
+  }
+
+  // --- Motion -------------------------------------------------------------
+  // The mapping itself lives in ./motion.ts so it can be unit-tested; this is
+  // only the plumbing. Nothing can sound before the stage has been touched,
+  // and desktop fires no orientation events at all, so on desktop both factors
+  // stay at 1 and the instrument is exactly as it was.
+
+  let motionListening = false;
+  let hasReference = false;
+  let liveGamma = 0;
+  let liveBeta = 0;
+  let refGamma = 0;
+  let refBeta = 0;
+
+  function currentBend(): number {
+    return hasReference ? bendFactor(liveGamma, refGamma) : 1;
+  }
+
+  function currentTiltGain(): number {
+    return hasReference ? tiltGainFactor(liveBeta, refBeta) : 1;
+  }
+
+  function handleOrientation(event: DeviceOrientationEvent): void {
+    if (event.gamma === null || event.beta === null) return;
+    liveGamma = event.gamma;
+    liveBeta = event.beta;
+    if (!hasReference) {
+      hasReference = true;
+      refGamma = liveGamma;
+      refBeta = liveBeta;
+    }
+    for (const [id, voice] of voices) {
+      updateVoice(id, voice.x, voice.y);
+    }
+  }
+
+  function listenForMotion(): void {
+    if (motionListening || !("DeviceOrientationEvent" in window)) return;
+    motionListening = true;
+    window.addEventListener("deviceorientation", handleOrientation);
+  }
+
+  // iOS only hands out orientation from inside a user gesture, so the ask rides
+  // on the first touch instead of a button: there is still nothing to read
+  // before you play, and refusing it costs only the tilt.
+  function requestMotion(): void {
+    if (motionListening || !("DeviceOrientationEvent" in window)) return;
+    const request = (
+      DeviceOrientationEvent as unknown as {
+        requestPermission?: () => Promise<PermissionState | string>;
+      }
+    ).requestPermission;
+    if (typeof request !== "function") {
+      listenForMotion();
+      return;
+    }
+    void request
+      .call(DeviceOrientationEvent)
+      .then((state) => {
+        if (state === "granted") listenForMotion();
+      })
+      .catch(() => {
+        /* Denied or unavailable: touch and keyboard still play it in full. */
+      });
   }
 
   function markSounded(): void {
@@ -65,6 +139,13 @@ if (stage && hint) {
   }
 
   function startVoice(id: string, x: number, y: number): void {
+    // However the phone is being held as the first note starts is "centre".
+    // Only once a reading has actually arrived — before that there is nothing
+    // to centre on, and handleOrientation adopts the first one it sees.
+    if (voices.size === 0 && hasReference) {
+      refGamma = liveGamma;
+      refBeta = liveBeta;
+    }
     const ctx = ensureAudioContext();
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -82,7 +163,7 @@ if (stage && hint) {
     glow.className = "glow";
     stage!.appendChild(glow);
 
-    voices.set(id, { oscillator, gain, glow });
+    voices.set(id, { oscillator, gain, glow, x, y });
     updateVoice(id, x, y);
     markSounded();
   }
@@ -90,11 +171,13 @@ if (stage && hint) {
   function updateVoice(id: string, x: number, y: number): void {
     const voice = voices.get(id);
     if (!voice || !audioContext) return;
+    voice.x = x;
+    voice.y = y;
     const rect = stage!.getBoundingClientRect();
     const localX = x - rect.left;
     const localY = y - rect.top;
-    const freq = freqForX(localX, rect.width);
-    const gainValue = gainForY(localY, rect.height);
+    const freq = freqForX(localX, rect.width) * currentBend();
+    const gainValue = gainForY(localY, rect.height) * currentTiltGain();
     voice.oscillator.frequency.setTargetAtTime(freq, audioContext.currentTime, RAMP_SECONDS);
     voice.gain.gain.setTargetAtTime(gainValue, audioContext.currentTime, RAMP_SECONDS);
 
@@ -120,6 +203,7 @@ if (stage && hint) {
 
   stage.addEventListener("pointerdown", (event) => {
     stage.setPointerCapture(event.pointerId);
+    requestMotion();
     startVoice(`pointer-${event.pointerId}`, event.clientX, event.clientY);
   });
 
