@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pages } from "./built-site.ts";
+import { pageNamed, pages } from "./built-site.ts";
 
 // The invariants run against the BUILT site, so they check what actually
 // ships, not the source. Run `pnpm build` first (the `check` script does).
@@ -70,7 +70,7 @@ describe("invariants: every page", () => {
 });
 
 describe("invariants: home page", () => {
-  const home = pages.find(({ name }) => name === "index.html");
+  const home = pageNamed("index.html");
 
   it("exists", () => {
     expect(home).toBeTruthy();

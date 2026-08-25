@@ -14,7 +14,7 @@ export const TILT_RANGE_DEG = 40;
 /** Quietest a full tip-away can get. Not zero: silence reads as broken. */
 export const MIN_TILT_GAIN = 0.08;
 
-export function clampUnit(n: number): number {
+function clampUnit(n: number): number {
   return Math.min(Math.max(n, -1), 1);
 }
 

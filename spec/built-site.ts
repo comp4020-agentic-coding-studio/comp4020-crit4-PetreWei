@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { JSDOM } from "jsdom";
 
 // Shared reading of the BUILT site, because every contract in here checks what
@@ -10,7 +10,7 @@ import { JSDOM } from "jsdom";
 //
 // Not named *.test.ts on purpose, so vitest doesn't collect it as a suite.
 
-export const DIST = resolve("dist");
+const DIST = resolve("dist");
 
 function walk(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -28,6 +28,28 @@ export interface Page {
   /** dist-relative POSIX path, e.g. "index.html" or "zh.html". */
   name: string;
   doc: Document;
+  /** Every script the page runs, inline or linked, concatenated. */
+  scripts: string;
+}
+
+/**
+ * Every script a page runs, inline or linked, concatenated. Lives here rather
+ * than in a spec file because resolving a `src` against dist is exactly the
+ * "how you read the built site" knowledge this module exists to hold --- it was
+ * the last thing reaching for the raw DIST path from outside.
+ */
+function scriptTextFor(name: string, doc: Document): string {
+  return [...doc.querySelectorAll("script")]
+    .map((script) => {
+      const src = script.getAttribute("src");
+      if (!src) return script.textContent ?? "";
+      try {
+        return readFileSync(resolve(dirname(join(DIST, name)), src), "utf8");
+      } catch {
+        return "";
+      }
+    })
+    .join("\n");
 }
 
 /** Every HTML page the build emitted, parsed once. */
@@ -36,7 +58,8 @@ export const pages: readonly Page[] = shipped
   .map((name) => ({
     name,
     doc: new JSDOM(readFileSync(join(DIST, name), "utf8")).window.document,
-  }));
+  }))
+  .map((page) => ({ ...page, scripts: scriptTextFor(page.name, page.doc) }));
 
 /** One page by its dist-relative name, or null if the build didn't emit it. */
 export function pageNamed(name: string): Document | null {

@@ -6,7 +6,7 @@
 // land on one language and not the other. The pages themselves are a single
 // line each.
 import Layout from "../layouts/Layout.astro";
-import { IDLE_READOUT } from "../scripts/readout.ts";
+import { IDLE_READOUT, READOUT_WIDTH } from "../scripts/readout.ts";
 import { LOCALES, ORDER, type Locale } from "../i18n/strings.ts";
 
 interface Props {
@@ -59,7 +59,10 @@ const others = ORDER.filter((code) => code !== locale).map((code) => LOCALES[cod
             disagree about what silence looks like.
           -->
           <div class="meter">
-            <span class="meter-value" id="meter-value">{IDLE_READOUT}</span>
+            <span
+              class="meter-value"
+              id="meter-value"
+              style={`--readout-width: ${READOUT_WIDTH}ch`}>{IDLE_READOUT}</span>
             <span class="meter-unit">{t.meterUnit}</span>
           </div>
         </div>

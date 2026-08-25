@@ -16,12 +16,17 @@ import { pageNamed, shipped } from "./built-site.ts";
 const HAN = /\p{Script=Han}/u;
 
 /**
- * The relative hrefs in the table, resolved to the file the build emits. Only
- * the root needs translating: astro.config.ts sets `build.format: "file"`, so
- * every other page ships as `name.html` rather than `name/index.html`.
+ * The relative hrefs in the table, resolved to the file the build emits. Read
+ * from the config rather than restated: `build.format: "file"` is why a page
+ * ships as `name.html` instead of `name/index.html`, and flipping it should red
+ * this test rather than silently change what it goes looking for.
  */
+const BUILD_FORMAT = astroConfig.build?.format ?? "directory";
+
 function fileFor(href: string): string {
-  return href === "./" ? "index.html" : href.replace(/^\.\//, "");
+  const slug = href.replace(/^\.\//, "");
+  if (slug === "") return "index.html";
+  return BUILD_FORMAT === "file" ? slug : `${slug.replace(/\.html$/, "")}/index.html`;
 }
 
 // Derived from astro.config.ts rather than restated, so this can't certify a

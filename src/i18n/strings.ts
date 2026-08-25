@@ -96,17 +96,32 @@ export const LOCALES: Record<Locale, Strings> = { en, zh };
 export const ORDER: readonly Locale[] = ["en", "zh"];
 
 /**
- * The keys a reader actually reads. `lang`, `ogLocale`, `href` and `card` are
- * machinery rather than copy, and `meterUnit` is deliberately identical, so the
- * translation-parity check names this list rather than walking every key.
+ * The keys that are NOT copy a reader reads: machinery (`lang`, `ogLocale`,
+ * `href`, `card`, `endonym` — which is already in its own language) and the one
+ * string deliberately identical in both (`meterUnit`: Hz is Hz).
+ *
+ * Named as the exclusion rather than as an allow-list, because the parity check
+ * below is meant to catch a key added to English and forgotten in Chinese — and
+ * whoever forgets the Chinese is exactly who would also forget to add the key
+ * to an opt-in list. New copy is therefore checked by default, and a string
+ * that is meant to stay identical has to be argued for here.
  */
-export const TRANSLATED_KEYS = [
-  "title",
-  "description",
-  "navLabel",
-  "heading",
-  "stageLabel",
-  "hint",
-  "infoToggle",
-  "panelLabel",
-] as const satisfies readonly (keyof Strings)[];
+const UNTRANSLATED = ["lang", "ogLocale", "href", "card", "endonym", "meterUnit"] as const;
+
+/** The keys of `Strings` holding a single string, as opposed to `panel`'s list. */
+type StringKey = {
+  [K in keyof Strings]: Strings[K] extends string ? K : never;
+}[keyof Strings];
+
+/**
+ * The keys a reader actually reads, derived so the list can't fall behind
+ * `Strings`. `panel` falls out structurally rather than by name — it is a list
+ * of paragraphs, so the parity check walks it separately; comparing the arrays
+ * with `toBe` would pass on two different references and assert nothing.
+ */
+export const TRANSLATED_KEYS: readonly StringKey[] = (
+  Object.keys(LOCALES.en) as (keyof Strings)[]
+).filter(
+  (key): key is StringKey =>
+    typeof LOCALES.en[key] === "string" && !(UNTRANSLATED as readonly string[]).includes(key),
+);

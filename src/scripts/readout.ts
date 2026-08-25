@@ -9,8 +9,14 @@
 /** Shown whenever there is no live pitch to report. */
 export const IDLE_READOUT = "–––";
 
-/** Widest plausible reading, used to reserve space so the meter can't jump. */
-export const READOUT_WIDTH = 7;
+/**
+ * Characters the meter holds open, so a reading gaining a digit doesn't shove
+ * the cabinet's layout. Instrument.astro passes this to the CSS and
+ * spec/readout.test.ts checks the played range still fits it --- it used to be
+ * exported, imported by nothing, and contradicted by a `min-width: 4.6ch` that
+ * was narrower than the widest reading it claimed to reserve.
+ */
+export const READOUT_WIDTH = 6;
 
 /**
  * One decimal place, so a slow glide visibly moves the last digit instead of

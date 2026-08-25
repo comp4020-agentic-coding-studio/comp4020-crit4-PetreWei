@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { DIST, pages } from "./built-site.ts";
+import { pages } from "./built-site.ts";
 
 // This week's brief: turn the page into a playable instrument. The published
 // spec (comp.anu.edu.au/.../crits/04-instrument/) has lines no test can hold —
@@ -10,27 +8,8 @@ import { DIST, pages } from "./built-site.ts";
 // covers only the lines with a mechanical answer.
 // Reading dist/ lives in ./built-site.ts, shared with the other spec files.
 
-// A script counts whether it's inlined or linked — read both so the check
-// survives a build that bundles differently.
-function scriptTextFor(name: string, doc: Document): string {
-  const scripts = [...doc.querySelectorAll("script")];
-  return scripts
-    .map((script) => {
-      if (script.src) {
-        const path = resolve(dirname(join(DIST, name)), script.getAttribute("src") ?? "");
-        try {
-          return readFileSync(path, "utf8");
-        } catch {
-          return "";
-        }
-      }
-      return script.textContent ?? "";
-    })
-    .join("\n");
-}
-
 describe("crit 4: an instrument", () => {
-  for (const { name, doc } of pages) {
+  for (const { name, doc, scripts } of pages) {
     describe(name, () => {
       it("makes sound live, rather than playing a recording", () => {
         // "the browser is the instrument — sound is made live in the page by
@@ -45,9 +24,8 @@ describe("crit 4: an instrument", () => {
       });
 
       it("uses the Web Audio API to synthesize sound", () => {
-        const script = scriptTextFor(name, doc);
         expect(
-          /AudioContext/.test(script),
+          /AudioContext/.test(scripts),
           "no reference to (Audio|webkitAudio)Context found — this checks for live synthesis, not any particular sound",
         ).toBe(true);
       });

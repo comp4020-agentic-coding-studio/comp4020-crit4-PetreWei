@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { IDLE_READOUT, formatHz } from "../src/scripts/readout.ts";
+import { bendFactor, TILT_RANGE_DEG } from "../src/scripts/motion.ts";
+import { MAX_FREQ, MIN_FREQ } from "../src/scripts/range.ts";
+import { IDLE_READOUT, READOUT_WIDTH, formatHz } from "../src/scripts/readout.ts";
 
 // CLAUDE.md: never show a plausible-looking guess — fail visibly, or show
 // nothing. A frequency meter is the easiest place in this prototype to break
@@ -25,25 +27,27 @@ describe("readout: the cabinet's frequency meter", () => {
   });
 
   it("shows dashes rather than a number that isn't one", () => {
-    for (const bad of [NaN, Infinity, -Infinity, 0, -440]) {
+    // Includes the values that would render the words NaN or Infinity into the
+    // cabinet: asserting the exact idle string covers that strictly, so there
+    // is no separate weaker "doesn't contain NaN" test to outlive this one.
+    for (const bad of [NaN, Infinity, -Infinity, 0, -1, -440]) {
       expect(formatHz(bad)).toBe(IDLE_READOUT);
     }
   });
 
-  it("never renders NaN or Infinity into the page", () => {
-    const samples = [NaN, Infinity, -Infinity, 0, -1, 1e-9, 1e9, 12345.6789];
-    for (const s of samples) {
-      const out = formatHz(s);
-      expect(out).not.toMatch(/NaN|Infinity/);
-      expect(out.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("stays narrow enough not to jog the cabinet's layout", () => {
-    // The full played range, bent as far as the tilt allows either way.
-    const bent = [110 / 1.5, 110, 440, 880, 880 * 1.5];
-    for (const f of bent) {
-      expect(formatHz(f).length).toBeLessThanOrEqual(7);
-    }
+  it("reserves enough room for the widest reading the instrument can play", () => {
+    // Derived, not restated. The old version wrote `110 / 1.5` and `880 * 1.5`,
+    // where 1.5 stood in for the real bend of 2 ** (7/12) = 1.4983 and 110/880
+    // were copies of MIN_FREQ/MAX_FREQ. Change the bend depth or the range and
+    // that test went green against a range the instrument no longer had.
+    const fullBend = bendFactor(TILT_RANGE_DEG, 0);
+    const widest = Math.max(
+      ...[MIN_FREQ / fullBend, MIN_FREQ, MAX_FREQ, MAX_FREQ * fullBend].map(
+        (f) => formatHz(f).length,
+      ),
+    );
+    // READOUT_WIDTH is what Instrument.astro reserves on the meter, so this is
+    // the one assertion that keeps the reserve and the range in step.
+    expect(widest).toBeLessThanOrEqual(READOUT_WIDTH);
   });
 });

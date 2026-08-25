@@ -1,4 +1,5 @@
 import { bendFactor, tiltGainFactor } from "./motion.ts";
+import { freqForX, gainForY, hueForFreq } from "./range.ts";
 // IDLE_READOUT isn't imported here: the served HTML now renders it, so the
 // dashes shipped in the markup and the dashes the script writes back come from
 // one constant without this file restating it.
@@ -17,16 +18,20 @@ if (infoToggle && infoPanel) {
   });
 }
 
-if (stage && hint) {
-  const hintEl = hint;
-  const MIN_FREQ = 110;
-  const MAX_FREQ = 880;
-  const MIN_GAIN = 0.0001;
-  const MAX_GAIN = 0.3;
+if (stage) {
+  instrument(stage);
+}
+
+// The whole instrument, given the one element it cannot work without. Taking
+// `stage` as a parameter rather than closing over the narrowed `const` is what
+// lets the body drop the non-null assertions: TypeScript does not carry a
+// narrowing into a hoisted function declaration, and the two workarounds that
+// used to paper over that --- an alias for one element, `!` for the other ---
+// were the only reason to read this as two different problems.
+function instrument(stage: HTMLElement): void {
   const RAMP_SECONDS = 0.05;
 
   let audioContext: AudioContext | null = null;
-  let hasSounded = false;
 
   interface Voice {
     oscillator: OscillatorNode;
@@ -49,27 +54,6 @@ if (stage && hint) {
     return audioContext;
   }
 
-  function freqForX(x: number, width: number): number {
-    const ratio = Math.min(Math.max(x / width, 0), 1);
-    return MIN_FREQ * (MAX_FREQ / MIN_FREQ) ** ratio;
-  }
-
-  function gainForY(y: number, height: number): number {
-    const ratio = Math.min(Math.max(1 - y / height, 0), 1);
-    return MIN_GAIN + ratio * (MAX_GAIN - MIN_GAIN);
-  }
-
-  // Warm valve-glow, deep red up to lamp yellow: a rainbow sweep reads as a
-  // modern colour picker, which fights the cabinet the instrument sits in.
-  function hueForFreq(freq: number): number {
-    const ratio = Math.log(freq / MIN_FREQ) / Math.log(MAX_FREQ / MIN_FREQ);
-    return 6 + clamp01(ratio) * 46;
-  }
-
-  function clamp01(n: number): number {
-    return Math.min(Math.max(n, 0), 1);
-  }
-
   // --- Motion -------------------------------------------------------------
   // The mapping itself lives in ./motion.ts so it can be unit-tested; this is
   // only the plumbing. Nothing can sound before the stage has been touched,
@@ -83,12 +67,15 @@ if (stage && hint) {
   let refGamma = 0;
   let refBeta = 0;
 
+  // No ternary on hasReference: before any reading, live and ref are both 0,
+  // and bendFactor(0, 0) and tiltGainFactor(0, 0) are each exactly 1 --- the
+  // guard could only ever return the value it was guarding against.
   function currentBend(): number {
-    return hasReference ? bendFactor(liveGamma, refGamma) : 1;
+    return bendFactor(liveGamma, refGamma);
   }
 
   function currentTiltGain(): number {
-    return hasReference ? tiltGainFactor(liveBeta, refBeta) : 1;
+    return tiltGainFactor(liveBeta, refBeta);
   }
 
   function handleOrientation(event: DeviceOrientationEvent): void {
@@ -150,18 +137,12 @@ if (stage && hint) {
     }
   }
 
-  function markSounded(): void {
-    if (!hasSounded) {
-      hasSounded = true;
-      hintEl.dataset.faded = "true";
-    }
-  }
-
   function startVoice(id: string, x: number, y: number): void {
     // However the phone is being held as the first note starts is "centre".
-    // Only once a reading has actually arrived — before that there is nothing
-    // to centre on, and handleOrientation adopts the first one it sees.
-    if (voices.size === 0 && hasReference) {
+    // Needs no "has a reading arrived yet" guard: before the first one, live
+    // and ref are both 0, so this assignment is 0 = 0, and handleOrientation
+    // adopts the first reading it sees anyway.
+    if (voices.size === 0) {
       refGamma = liveGamma;
       refBeta = liveBeta;
     }
@@ -169,22 +150,25 @@ if (stage && hint) {
     const oscillator = ctx.createOscillator();
     const gain = ctx.createGain();
     oscillator.type = "sine";
-    const rect = stage!.getBoundingClientRect();
+    const rect = stage.getBoundingClientRect();
     const freq = freqForX(x - rect.left, rect.width);
     oscillator.frequency.value = freq;
     gain.gain.value = 0;
     oscillator.connect(gain);
     gain.connect(ctx.destination);
     oscillator.start();
-    gain.gain.setTargetAtTime(gainForY(y - rect.top, rect.height), ctx.currentTime, RAMP_SECONDS);
+    // No gain set here: updateVoice runs before this function returns and sets
+    // it with the tilt factor applied. Setting it twice only meant computing a
+    // value that was overwritten on the next line.
 
     const glow = document.createElement("div");
     glow.className = "glow";
-    stage!.appendChild(glow);
+    stage.appendChild(glow);
 
     voices.set(id, { oscillator, gain, glow, x, y });
     updateVoice(id, x, y);
-    markSounded();
+    // Idempotent, so it needs no "have we sounded yet" flag beside it.
+    hint?.setAttribute("data-faded", "true");
   }
 
   function updateVoice(id: string, x: number, y: number): void {
@@ -192,7 +176,7 @@ if (stage && hint) {
     if (!voice || !audioContext) return;
     voice.x = x;
     voice.y = y;
-    const rect = stage!.getBoundingClientRect();
+    const rect = stage.getBoundingClientRect();
     const localX = x - rect.left;
     const localY = y - rect.top;
     const freq = freqForX(localX, rect.width) * currentBend();
@@ -245,12 +229,21 @@ if (stage && hint) {
   // them is held, so the instrument is playable without a pointer at all.
   const KEYBOARD_ID = "keyboard";
   const heldArrowKeys = new Set<string>();
-  const ARROW_KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+  // One table: which keys play, and how far each moves the virtual hand. The
+  // membership test and the four directions used to be separate structures
+  // that had to agree.
+  const ARROW_STEPS: Record<string, readonly [number, number]> = {
+    ArrowLeft: [-24, 0],
+    ArrowRight: [24, 0],
+    ArrowUp: [0, -24],
+    ArrowDown: [0, 24],
+  };
   let keyboardX = 0;
   let keyboardY = 0;
 
   stage.addEventListener("keydown", (event) => {
-    if (!ARROW_KEYS.includes(event.key)) return;
+    const step = ARROW_STEPS[event.key];
+    if (!step) return;
     event.preventDefault();
     const rect = stage.getBoundingClientRect();
     if (heldArrowKeys.size === 0) {
@@ -258,11 +251,8 @@ if (stage && hint) {
       keyboardY = rect.top + rect.height / 2;
     }
     heldArrowKeys.add(event.key);
-    const step = 24;
-    if (event.key === "ArrowLeft") keyboardX -= step;
-    if (event.key === "ArrowRight") keyboardX += step;
-    if (event.key === "ArrowUp") keyboardY -= step;
-    if (event.key === "ArrowDown") keyboardY += step;
+    keyboardX += step[0];
+    keyboardY += step[1];
     keyboardX = Math.min(Math.max(keyboardX, rect.left), rect.right);
     keyboardY = Math.min(Math.max(keyboardY, rect.top), rect.bottom);
 
@@ -274,7 +264,7 @@ if (stage && hint) {
   });
 
   stage.addEventListener("keyup", (event) => {
-    if (!ARROW_KEYS.includes(event.key)) return;
+    if (!(event.key in ARROW_STEPS)) return;
     heldArrowKeys.delete(event.key);
     if (heldArrowKeys.size === 0) {
       stopVoice(KEYBOARD_ID);

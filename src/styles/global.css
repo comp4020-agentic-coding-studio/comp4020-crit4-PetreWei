@@ -304,7 +304,9 @@ main {
 }
 
 .meter-value {
-  min-width: 4.6ch;
+  /* Set from READOUT_WIDTH in readout.ts, so the room held open here and the
+     widest reading the instrument can play come from one number. */
+  min-width: var(--readout-width, 6ch);
   text-align: right;
   font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
   font-variant-numeric: tabular-nums;
