@@ -10,6 +10,8 @@ The course website publishes each deliverable's brief (the open problem) and spe
 - Open the page in a browser (or use `agent-browser`) rather than imagining it. The rendered page is the truth; your mental model of it isn't.
 - A red check is a sensor doing its job: read what it says before changing anything, and never weaken a check just to reach green.
 - Commit when checks pass. Never commit a red state.
+- **Push every commit as you make it, without asking.** The deployed site is what gets marked, so an unpushed commit is work that doesn't count. The order is fixed: `pnpm check` green → commit → push. Never force-push, and never push a commit whose checks you haven't just run.
+- A push to this public repo publishes permanently, and pushing by default removes the beat where a stray file would have been caught. So read `git status` before staging, and name the paths you mean instead of reaching for `git add -A` when anything untracked is in the tree. After the push, the CI run is the authority — a local green is not a green deploy, so read the run rather than assuming it.
 
 ## The link-preview card
 
