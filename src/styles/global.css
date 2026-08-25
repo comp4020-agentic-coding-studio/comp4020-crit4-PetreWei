@@ -19,6 +19,20 @@ body {
     sans-serif;
   background: #140d08;
   color: #f3e6d2;
+
+  /* The stamped brass the nameplate and the plaque button are both cut from.
+     They are meant to read as the same metal, so they share one declaration
+     rather than two that have to be restruck together. */
+  --brass: linear-gradient(to bottom, #e8c98a, #b5904c 55%, #8a6a30);
+  --brass-lit: inset 0 1px 0 rgba(255, 245, 215, 0.6);
+  /* One focus ring for every focusable thing on the page. It is the value most
+     likely to be adjusted once and needed everywhere, and it carries the
+     accessibility floor. */
+  --focus-ring: 3px solid #f5d76e;
+  /* Where the plaque button sits. The panel hangs off the button, so it reads
+     the same insets rather than restating them and drifting loose. */
+  --plaque-right: clamp(0.75rem, 2vw, 1.5rem);
+  --plaque-top: clamp(0.6rem, 1.5vh, 1rem);
 }
 
 header {
@@ -52,7 +66,7 @@ header nav a {
 }
 
 header nav a:focus-visible {
-  outline: 3px solid #f5d76e;
+  outline: var(--focus-ring);
   outline-offset: 4px;
   border-radius: 2px;
 }
@@ -115,16 +129,14 @@ main {
   width: 100vw;
 }
 
+/* The <h1>. Present for the document outline and for a screen reader, and
+   invisible on the page, where the drawn cabinet is the heading. Nothing here
+   tunes appearance --- at opacity 0 a font-size would only look like it did. */
 .visually-tucked {
   position: absolute;
   margin: 0;
-  top: 0.5rem;
-  left: 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  z-index: 2;
-  pointer-events: none;
   opacity: 0;
+  pointer-events: none;
 }
 
 #stage {
@@ -153,7 +165,7 @@ main {
 }
 
 #stage:focus-visible {
-  outline: 3px solid #f5d76e;
+  outline: var(--focus-ring);
   outline-offset: -3px;
 }
 
@@ -266,9 +278,9 @@ main {
   letter-spacing: 0.35em;
   color: #3a2a10;
   text-shadow: 0 1px 0 rgba(255, 235, 190, 0.5);
-  background: linear-gradient(to bottom, #e8c98a, #b5904c 55%, #8a6a30);
+  background: var(--brass);
   box-shadow:
-    inset 0 1px 0 rgba(255, 245, 215, 0.6),
+    var(--brass-lit),
     0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
@@ -322,43 +334,36 @@ main {
   color: #b78b4f;
 }
 
+/* Both rods are the same drawn brass, turned on the same lathe: the metal
+   lives here, and each antenna says only where it stands and how tall it is.
+   Two copies of the gradient meant retuning one and leaving the instrument
+   with two different metals, which nothing would have caught. */
 .antenna {
   position: absolute;
   bottom: var(--cabinet-height);
+  width: clamp(6px, 0.55vw, 11px);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(
+    to right,
+    #4a4f5a 0%,
+    #c8ced8 35%,
+    #f2f5fa 48%,
+    #99a1ad 70%,
+    #3d424c 100%
+  );
+  box-shadow: 0 0 14px rgba(200, 216, 255, 0.25);
 }
 
 /* Pitch: the vertical rod rising from the right end of the cabinet. */
 .antenna-pitch {
   right: clamp(18px, 3vw, 60px);
-  width: clamp(6px, 0.55vw, 11px);
   height: var(--antenna-height);
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(
-    to right,
-    #4a4f5a 0%,
-    #c8ced8 35%,
-    #f2f5fa 48%,
-    #99a1ad 70%,
-    #3d424c 100%
-  );
-  box-shadow: 0 0 14px rgba(200, 216, 255, 0.25);
 }
 
 /* Volume: the loop that juts sideways out of the cabinet's left end. */
 .antenna-volume {
   left: clamp(16px, 3vw, 56px);
-  width: clamp(6px, 0.55vw, 11px);
   height: calc(var(--antenna-height) * 0.22);
-  border-radius: 3px 3px 0 0;
-  background: linear-gradient(
-    to right,
-    #4a4f5a 0%,
-    #c8ced8 35%,
-    #f2f5fa 48%,
-    #99a1ad 70%,
-    #3d424c 100%
-  );
-  box-shadow: 0 0 14px rgba(200, 216, 255, 0.25);
 }
 
 .antenna-volume-loop {
@@ -383,8 +388,8 @@ main {
 
 #info-toggle {
   position: fixed;
-  right: clamp(0.75rem, 2vw, 1.5rem);
-  top: clamp(0.6rem, 1.5vh, 1rem);
+  right: var(--plaque-right);
+  top: var(--plaque-top);
   z-index: 5;
   padding: 0.5rem 1rem;
   border: 1px solid #6d4f1c;
@@ -395,9 +400,9 @@ main {
   letter-spacing: 0.12em;
   color: #3a2a10;
   cursor: pointer;
-  background: linear-gradient(to bottom, #e8c98a, #b5904c 55%, #8a6a30);
+  background: var(--brass);
   box-shadow:
-    inset 0 1px 0 rgba(255, 245, 215, 0.6),
+    var(--brass-lit),
     0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
@@ -406,14 +411,14 @@ main {
 }
 
 #info-toggle:focus-visible {
-  outline: 3px solid #f5d76e;
+  outline: var(--focus-ring);
   outline-offset: 3px;
 }
 
 #info-panel {
   position: fixed;
-  right: clamp(0.75rem, 2vw, 1.5rem);
-  top: calc(clamp(0.6rem, 1.5vh, 1rem) + 3rem);
+  right: var(--plaque-right);
+  top: calc(var(--plaque-top) + 3rem);
   z-index: 5;
   max-width: min(30rem, calc(100vw - 1.5rem));
   padding: 1.1rem 1.3rem;
@@ -426,10 +431,6 @@ main {
   box-shadow:
     inset 0 1px 0 rgba(226, 190, 130, 0.3),
     0 8px 28px rgba(0, 0, 0, 0.6);
-}
-
-#info-panel[hidden] {
-  display: none;
 }
 
 #info-panel p {
