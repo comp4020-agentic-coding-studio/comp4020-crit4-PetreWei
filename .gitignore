@@ -21,3 +21,9 @@ mise.local.toml
 # harness is CLAUDE.md (and any AGENTS.md), not this directory.
 .claude/
 .astro/
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
